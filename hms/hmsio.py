@@ -173,5 +173,8 @@ class HMSLoad(HMSDataProvider):
 
     def _get_one_item(self, item_id: int) -> HMSItem:
         """Reads the data from memory"""
-        return HMSItem(sg=self.sg[item_id], eeg=self.eeg[item_id], label=self.labels[item_id].astype(int), sg_fs=self.sg_fs,
+        label = self.labels[item_id]
+        if not label is np.nan:
+            label = label.astype(int)
+        return HMSItem(sg=self.sg[item_id], eeg=self.eeg[item_id], label=label, sg_fs=self.sg_fs,
                        eeg_fs=self.eeg_fs)
