@@ -70,8 +70,8 @@ class HMSSave:
     processor: HMSProcessor = None
     sg_path: str = './output/sg'
     eeg_path: str = './output/eeg'
-    chunk_size = 13
-    verbose = True
+    chunk_size: int = 10000
+    verbose: bool = True
 
     def print(self, s: str) -> None:
         if self.verbose:
