@@ -54,7 +54,7 @@ class HMSReader(HMSDataProvider):
     def _get_item_data_train(self, item) -> Tuple[int, int, np.ndarray]:
         eeg_start = int(self.eeg_fs * item.eeg_label_offset_seconds)
         sg_start = int(item.spectrogram_label_offset_seconds / 2)
-        return sg_start, eeg_start, item.iloc[-6:].to_numpy()
+        return sg_start, eeg_start, item.iloc[-6:].to_numpy().astype(int)
 
     def __getitem__(self, selection: Union[int, slice]) -> Union[HMSItem, List[HMSItem]]:
         if isinstance(selection, int):
@@ -173,5 +173,5 @@ class HMSLoad(HMSDataProvider):
 
     def _get_one_item(self, item_id: int) -> HMSItem:
         """Reads the data from memory"""
-        return HMSItem(sg=self.sg[item_id], eeg=self.eeg[item_id], label=self.labels[item_id], sg_fs=self.sg_fs,
+        return HMSItem(sg=self.sg[item_id], eeg=self.eeg[item_id], label=self.labels[item_id].astype(int), sg_fs=self.sg_fs,
                        eeg_fs=self.eeg_fs)
