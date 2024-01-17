@@ -151,7 +151,7 @@ class HMSLoad(HMSDataProvider):
         self.sg = []
         self.eeg = []
         n = 0
-        while n < len(self.labels):
+        while (n < len(self.labels)) and ((self.limit is None) or (n < self.limit)):
             self.print(f'Loading {n}')
             with open(f'{self.sg_path}/sg_{n}.pkl', 'rb') as f:
                 self.sg += pickle.load(f)
