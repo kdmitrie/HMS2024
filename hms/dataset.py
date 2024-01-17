@@ -32,9 +32,9 @@ class HMSDataset(Dataset):
         """
 
         super().__init__()
-        self.data_provider = data_provider
         self.transform = transform
-        self.load()
+        self.load(data_provider)
+        self.length = len(data_provider)
 
         self.shuffle = np.arange(len(data_provider))
         if shuffle:
@@ -42,17 +42,17 @@ class HMSDataset(Dataset):
             rng.shuffle(self.shuffle)
         self.shuffle = self.shuffle.tolist()
 
-    def load(self):
+    def load(self, data_provider: HMSDataProvider):
         sg, eeg, labels = [], [], []
-        for n in range(len(self.data_provider)):
-            sg.append(self.data_provider[n].sg)
-            eeg.append(self.data_provider[n].eeg)
-            labels.append(self.data_provider[n].label)
+        for n in range(len(data_provider)):
+            sg.append(data_provider[n].sg)
+            eeg.append(data_provider[n].eeg)
+            labels.append(data_provider[n].label)
 
         self.sg = torch.tensor(np.array(sg))
         self.eeg = torch.tensor(np.array(eeg)[:, None, ...])
         self.labels = np.array(labels)
-
+        self.labels = self.labels / self.labels.sum(axis=1).reshape((-1, 1))
 
     def train_test_split(self, train_size=0.8, test_size=0.2):
         thresh = int(len(self) * train_size / (train_size + test_size))
@@ -61,7 +61,7 @@ class HMSDataset(Dataset):
         return train_ds, test_ds
 
     def __len__(self) -> int:
-        return len(self.data_provider)
+        return self.length
 
     def __getitem__(self, index: int) -> Tuple[Tuple, np.ndarray]:
         index = self.shuffle[index]
