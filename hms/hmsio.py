@@ -12,14 +12,24 @@ SG_FS = 1
 EEG_FS = 200
 
 
-class HMSReader:
+@dataclass
+class HMSDataProvider:
+    limit: int = None
+
+    def __len__(self) -> int:
+        return 0
+
+    def __getitem__(self, item) -> HMSItem:
+        return HMSItem(sg=np.array([]), eeg=np.array([]), label=np.array([]))
+
+
+class HMSReader(HMSDataProvider):
     """Class for reading the train and test data"""
 
     sg_fs: int = SG_FS
     eeg_fs: int = EEG_FS
     eeg_len: int = 10000
     sg_len: int = 300
-    limit: int = None
 
     def __init__(self, csv_file: str, sg_path: str, eeg_path: str, limit: int = None):
         """
@@ -58,7 +68,7 @@ class HMSReader:
         sg = pd.read_parquet(self.sg_path % item.spectrogram_id).iloc[sg_start:sg_start + self.sg_len, 1:]
         sg = sg.to_numpy().reshape((-1, 4, 100))
         sg = np.moveaxis(sg, 1, 0)
-        eeg = pd.read_parquet(self.eeg_path % item.eeg_id).iloc[eeg_start:eeg_start + self.eeg_len]
+        eeg = pd.read_parquet(self.eeg_path % item.eeg_id).iloc[eeg_start:eeg_start + self.eeg_len].to_numpy()
 
         return HMSItem(sg=sg, eeg=eeg, label=label, sg_fs=self.sg_fs, eeg_fs=self.eeg_fs)
 
@@ -70,7 +80,7 @@ class HMSSave:
     processor: HMSProcessor = None
     sg_path: str = './output/sg'
     eeg_path: str = './output/eeg'
-    chunk_size: int = 10000
+    chunk_size: int = 1000
     verbose: bool = True
 
     def print(self, s: str) -> None:
@@ -116,12 +126,11 @@ class HMSSave:
 
 
 @dataclass
-class HMSLoad:
+class HMSLoad(HMSDataProvider):
     """Class for loading the data"""
     sg_path: str = './output/sg'
     eeg_path: str = './output/eeg'
     verbose: bool = True
-    limit: int = None
 
     def __post_init__(self):
         self.eeg_fs = EEG_FS
@@ -156,8 +165,10 @@ class HMSLoad:
         return len(self.labels) if self.limit is None else self.limit
 
     def __getitem__(self, selection: Union[int, slice]) -> Union[HMSItem, List[HMSItem]]:
-        if isinstance(selection, int):
+        if isinstance(selection, int) or isinstance(selection, np.int32):
             return self._get_one_item(selection)
+        if isinstance(selection, list):
+            return [self._get_one_item(item_id) for item_id in selection]
         return [self._get_one_item(item_id) for item_id in range(len(self.labels))[selection]]
 
     def _get_one_item(self, item_id: int) -> HMSItem:
