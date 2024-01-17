@@ -3,13 +3,14 @@ import timm
 
 
 class HMSSimpleNet(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, device: torch.device):
         super(HMSSimpleNet, self).__init__()
         self.bb1 = timm.create_model('resnet18', pretrained=True, num_classes=0, global_pool='', in_chans=4)
         self.bb2 = timm.create_model('resnet18', pretrained=True, num_classes=0, global_pool='', in_chans=1)
         self.flatten = torch.nn.Flatten(start_dim=-3)
 
         self.head1 = torch.nn.Sequential(
+            torch.nn.AdaptiveAvgPool1d(2048),
             torch.nn.Linear(in_features=2048, out_features=128),
             torch.nn.ReLU(),
             torch.nn.Linear(in_features=128, out_features=32),
@@ -43,8 +44,14 @@ class HMSSimpleNet(torch.nn.Module):
             # torch.nn.Softmax(dim=-1)
         )
 
+        self.device = device
+        self.to(device)
+
     def forward(self, x):
         sg, eeg = x
+        sg = sg.to(self.device)
+        eeg = eeg.to(self.device)
+
         sg = self.proc1(sg)
         eeg = self.proc2(eeg)
         combined = torch.cat((sg, eeg), axis=1)
