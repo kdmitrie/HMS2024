@@ -1,6 +1,6 @@
 import numpy as np
-from typing import List, Union
-from dataclasses import dataclass
+from typing import List, Union, Callable
+from dataclasses import dataclass, field
 from scipy import signal
 
 
@@ -24,10 +24,40 @@ class HMSItem:
 
 
 @dataclass
+class HMSDataProvider:
+    limit: int = None
+    verbose: bool = True
+    process: List[Callable] = field(default_factory=list)
+
+
+    def __len__(self) -> int:
+        return 0
+
+    def __getitem__(self, item) -> HMSItem:
+        return HMSItem(sg=np.array([]), eeg=np.array([]), label=np.array([]))
+
+    def print(self, s: str) -> None:
+        if self.verbose:
+            print(s)
+
+    def add_processing(self, process: Callable) -> None:
+        self.process.append(process)
+
+    def _process_one_item(self, item: HMSItem) -> HMSItem:
+        for proc in self.process:
+            item = proc(item)
+        return item
+
+@dataclass
 class HMSProcessor:
-    def __call__(self, data: Union[HMSItem, List[HMSItem]]) -> Union[HMSItem, List[HMSItem]]:
+    def __call__(self, data: Union[HMSItem, List[HMSItem], HMSDataProvider]) -> Union[HMSItem, List[HMSItem], HMSDataProvider]:
         if isinstance(data, HMSItem):
             return self.process(data)
+
+        if isinstance(data, HMSDataProvider):
+            data.add_processing(self.process)
+            return data
+
         return [self.process(item) for item in data]
 
     def process(self, item: HMSItem) -> HMSItem:

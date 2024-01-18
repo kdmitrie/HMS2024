@@ -6,31 +6,14 @@ from dataclasses import dataclass
 from pathlib import Path
 import pickle
 
-from .pipeline import HMSItem, HMSProcessor
+from .pipeline import HMSItem, HMSProcessor, HMSDataProvider
 
-SG_FS = 1
-EEG_FS = 200
-
-
-@dataclass
-class HMSDataProvider:
-    limit: int = None
-    verbose: bool = True
-
-    def __len__(self) -> int:
-        return 0
-
-    def __getitem__(self, item) -> HMSItem:
-        return HMSItem(sg=np.array([]), eeg=np.array([]), label=np.array([]))
-
-    def print(self, s: str) -> None:
-        if self.verbose:
-            print(s)
+SG_FS: int = 1
+EEG_FS: int = 200
 
 
 class HMSReader(HMSDataProvider):
     """Class for reading the train and test data"""
-
     sg_fs: int = SG_FS
     eeg_fs: int = EEG_FS
     eeg_len: int = 10000
@@ -47,6 +30,7 @@ class HMSReader(HMSDataProvider):
         self.eeg_path = eeg_path
         self.sg_path = sg_path
         self.limit = limit
+        self.process = []
 
         if 'eeg_label_offset_seconds' in self.df.columns:
             self._get_item_data = self._get_item_data_train
@@ -75,7 +59,8 @@ class HMSReader(HMSDataProvider):
         sg = np.moveaxis(sg, 1, 0)
         eeg = pd.read_parquet(self.eeg_path % item.eeg_id).iloc[eeg_start:eeg_start + self.eeg_len].to_numpy()
 
-        return HMSItem(sg=sg, eeg=eeg, label=label, sg_fs=self.sg_fs, eeg_fs=self.eeg_fs)
+        item = HMSItem(sg=sg, eeg=eeg, label=label, sg_fs=self.sg_fs, eeg_fs=self.eeg_fs)
+        return self._process_one_item(item)
 
 
 @dataclass
@@ -177,5 +162,6 @@ class HMSLoad(HMSDataProvider):
         label = self.labels[item_id]
         if label is not np.nan:
             label = label.astype(int)
-        return HMSItem(sg=self.sg[item_id], eeg=self.eeg[item_id], label=label, sg_fs=self.sg_fs,
+        item = HMSItem(sg=self.sg[item_id], eeg=self.eeg[item_id], label=label, sg_fs=self.sg_fs,
                        eeg_fs=self.eeg_fs)
+        return self._process_one_item(item)
