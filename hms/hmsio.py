@@ -15,12 +15,17 @@ EEG_FS = 200
 @dataclass
 class HMSDataProvider:
     limit: int = None
+    verbose: bool = True
 
     def __len__(self) -> int:
         return 0
 
     def __getitem__(self, item) -> HMSItem:
         return HMSItem(sg=np.array([]), eeg=np.array([]), label=np.array([]))
+
+    def print(self, s: str) -> None:
+        if self.verbose:
+            print(s)
 
 
 class HMSReader(HMSDataProvider):
@@ -46,7 +51,7 @@ class HMSReader(HMSDataProvider):
         if 'eeg_label_offset_seconds' in self.df.columns:
             self._get_item_data = self._get_item_data_train
         else:
-            self._get_item_data = lambda item: (0, 0, np.array(None))
+            self._get_item_data = lambda item: (0, 0, np.array([None]*6))
 
     def __len__(self) -> int:
         return len(self.df) if self.limit is None else self.limit
@@ -137,10 +142,6 @@ class HMSLoad(HMSDataProvider):
         self.sg_fs = SG_FS
         self.sg, self.eeg, self.labels = [], [], []
 
-    def print(self, s: str) -> None:
-        if self.verbose:
-            print(s)
-
     def load(self) -> None:
         with open(f'{self.eeg_path}/labels.pkl', 'rb') as f:
             data = pickle.load(f)
@@ -174,7 +175,7 @@ class HMSLoad(HMSDataProvider):
     def _get_one_item(self, item_id: int) -> HMSItem:
         """Reads the data from memory"""
         label = self.labels[item_id]
-        if not label is np.nan:
+        if label is not np.nan:
             label = label.astype(int)
         return HMSItem(sg=self.sg[item_id], eeg=self.eeg[item_id], label=label, sg_fs=self.sg_fs,
                        eeg_fs=self.eeg_fs)
