@@ -35,7 +35,7 @@ class HMSReader(HMSDataProvider):
         if 'eeg_label_offset_seconds' in self.df.columns:
             self._get_item_data = self._get_item_data_train
         else:
-            self._get_item_data = lambda item: (0, 0, np.array([None]*6))
+            self._get_item_data = lambda item: (0, 0, np.array([np.nan]*6))
 
     def __len__(self) -> int:
         return len(self.df) if self.limit is None else self.limit
