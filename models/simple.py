@@ -3,10 +3,10 @@ import timm
 
 
 class HMSSimpleNet(torch.nn.Module):
-    def __init__(self, device: torch.device):
+    def __init__(self, device: torch.device, model_name: str = 'resnet18'):
         super(HMSSimpleNet, self).__init__()
-        self.bb1 = timm.create_model('resnet18', pretrained=True, num_classes=0, global_pool='', in_chans=4)
-        self.bb2 = timm.create_model('resnet18', pretrained=True, num_classes=0, global_pool='', in_chans=1)
+        self.bb1 = timm.create_model(model_name, pretrained=True, num_classes=0, global_pool='', in_chans=4)
+        self.bb2 = timm.create_model(model_name, pretrained=True, num_classes=0, global_pool='', in_chans=1)
         self.flatten = torch.nn.Flatten(start_dim=-3)
 
         self.head1 = torch.nn.Sequential(
