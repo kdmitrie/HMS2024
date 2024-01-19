@@ -29,7 +29,6 @@ class HMSDataProvider:
     verbose: bool = True
     process: List[Callable] = field(default_factory=list)
 
-
     def __len__(self) -> int:
         return 0
 
@@ -47,6 +46,7 @@ class HMSDataProvider:
         for proc in self.process:
             item = proc(item)
         return item
+
 
 @dataclass
 class HMSProcessor:
@@ -86,6 +86,7 @@ class HMSFillna(HMSProcessor):
 @dataclass
 class HMSDecimate(HMSProcessor):
     q: int = 1
+
     def process(self, item: HMSItem) -> HMSItem:
         item.eeg = signal.decimate(item.eeg, self.q, axis=0)
         item.eeg_fs = item.eeg_fs // self.q
