@@ -86,7 +86,6 @@ class HMSFillna(HMSProcessor):
 @dataclass
 class HMSDecimate(HMSProcessor):
     q: int = 1
-
     def process(self, item: HMSItem) -> HMSItem:
         item.eeg = signal.decimate(item.eeg, self.q, axis=0)
         item.eeg_fs = item.eeg_fs // self.q
@@ -107,4 +106,19 @@ class HMSSelect(HMSProcessor):
         t_eeg2 = int(self.eeg_t * item.eeg_fs / 2)
         item.eeg = item.eeg[eeg_center - t_eeg2: eeg_center + t_eeg2, :]
 
+        return item
+
+
+@dataclass
+class HMSStandardScaler(HMSProcessor):
+    def process(self, item: HMSItem) -> HMSItem:
+        item.sg = (item.sg - item.sg.mean()) / item.sg.std()
+        item.eeg = (item.eeg - item.eeg.mean()) / item.eeg.std()
+        return item
+
+
+@dataclass
+class HMSLogSG(HMSProcessor):
+    def process(self, item: HMSItem) -> HMSItem:
+        item.sg = np.log(np.clip(item.sg, np.exp(-6), np.exp(10)))
         return item
