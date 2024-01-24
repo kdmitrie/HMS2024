@@ -11,7 +11,7 @@ class HMSItem:
     eeg: np.ndarray
     label: np.ndarray
 
-    sg_fs: int = 1
+    sg_fs: float = 0.5
     eeg_fs: int = 1
 
     def __repr__(self) -> str:
