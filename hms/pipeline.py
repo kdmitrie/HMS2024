@@ -112,9 +112,10 @@ class HMSSelect(HMSProcessor):
 
 @dataclass
 class HMSStandardScaler(HMSProcessor):
+    epsilon: float = 1e-6
     def process(self, item: HMSItem) -> HMSItem:
-        item.sg = (item.sg - item.sg.mean()) / item.sg.std()
-        item.eeg = (item.eeg - item.eeg.mean()) / item.eeg.std()
+        item.sg = (item.sg - np.nanmean(item.sg)) / (np.nanstd(item.sg) + self.epsilon)
+        item.eeg = (item.eeg - np.nanmean(item.eeg)) / (np.nanstd(item.eeg) + self.epsilon)
         return item
 
 
