@@ -49,8 +49,8 @@ class HMSDataset(Dataset):
             eeg.append(data_provider[n].eeg)
             labels.append(data_provider[n].label)
 
-        self.sg = torch.tensor(np.array(sg))
-        self.eeg = torch.tensor(np.array(eeg)[:, None, ...])
+        self.sg = torch.from_numpy(np.array(sg))
+        self.eeg = torch.from_numpy(np.array(eeg)[:, None, ...])
         self.labels = np.array(labels)
         self.labels = self.labels / self.labels.sum(axis=1).reshape((-1, 1))
 
