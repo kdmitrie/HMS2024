@@ -113,6 +113,7 @@ class HMSSelect(HMSProcessor):
 @dataclass
 class HMSStandardScaler(HMSProcessor):
     epsilon: float = 1e-6
+
     def process(self, item: HMSItem) -> HMSItem:
         item.sg = (item.sg - np.nanmean(item.sg)) / (np.nanstd(item.sg) + self.epsilon)
         item.eeg = (item.eeg - np.nanmean(item.eeg)) / (np.nanstd(item.eeg) + self.epsilon)
@@ -123,4 +124,12 @@ class HMSStandardScaler(HMSProcessor):
 class HMSLogSG(HMSProcessor):
     def process(self, item: HMSItem) -> HMSItem:
         item.sg = np.log(np.clip(item.sg, np.exp(-6), np.exp(10)))
+        return item
+
+
+@dataclass
+class HMSStack(HMSProcessor):
+    def process(self, item: HMSItem) -> HMSItem:
+        item.sg = np.moveaxis(item.sg, 0, 1)
+        item.sg = np.reshape(item.sg, (item.sg.shape[0], item.sg.shape[1] * item.sg.shape[2]))
         return item
