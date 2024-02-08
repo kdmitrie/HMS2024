@@ -1,8 +1,9 @@
 import torch
 from torch.utils.data import Dataset
 import numpy as np
-from typing import Callable, Tuple
+from typing import Callable, Tuple, List
 from .hmsio import HMSDataProvider
+
 
 class HMSSplitDataset(Dataset):
     """Class used to split dataset into train/validation"""
@@ -72,3 +73,17 @@ class HMSDataset(Dataset):
             sg, eeg = self.transform(sg, eeg)
 
         return (sg, eeg), self.labels[index]
+
+    class IndexedDataset(Dataset):
+        """Class used to select a part of the base dataset specified by indices array"""
+
+        def __init__(self, base_dataset: Dataset, indices: List):
+            super().__init__()
+            self.base_dataset = base_dataset
+            self.indices = indices
+
+        def __getitem__(self, idx):
+            return self.base_dataset[self.indices[idx]]
+
+        def __len__(self):
+            return len(self.indices)
