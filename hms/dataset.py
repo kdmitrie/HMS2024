@@ -74,16 +74,16 @@ class HMSDataset(Dataset):
 
         return (sg, eeg), self.labels[index]
 
-    class IndexedDataset(Dataset):
-        """Class used to select a part of the base dataset specified by indices array"""
+class HMSIndexedDataset(Dataset):
+    """Class used to select a part of the base dataset specified by indices array"""
 
-        def __init__(self, base_dataset: Dataset, indices: List):
-            super().__init__()
-            self.base_dataset = base_dataset
-            self.indices = indices
+    def __init__(self, base_dataset: Dataset, indices: List):
+        super().__init__()
+        self.base_dataset = base_dataset
+        self.indices = indices
 
-        def __getitem__(self, idx):
-            return self.base_dataset[self.indices[idx]]
+    def __getitem__(self, idx):
+        return self.base_dataset[self.indices[idx]]
 
-        def __len__(self):
-            return len(self.indices)
+    def __len__(self):
+        return len(self.indices)
