@@ -46,9 +46,10 @@ class HMSDataset(Dataset):
     def load(self, data_provider: HMSDataProvider):
         sg, eeg, labels = [], [], []
         for n in range(len(data_provider)):
-            sg.append(data_provider[n].sg)
-            eeg.append(data_provider[n].eeg)
-            labels.append(data_provider[n].label)
+            dt = data_provider[n]
+            sg.append(dt.sg)
+            eeg.append(dt.eeg)
+            labels.append(dt.label)
 
         self.sg = torch.from_numpy(np.array(sg))
         self.eeg = torch.from_numpy(np.array(eeg)[:, None, ...])
