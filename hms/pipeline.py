@@ -2,6 +2,7 @@ import numpy as np
 from typing import List, Union, Callable
 from dataclasses import dataclass, field
 from scipy import signal
+from .mneproc import MNEPreprocessor
 
 
 @dataclass
@@ -133,4 +134,51 @@ class HMSStack(HMSProcessor):
     def process(self, item: HMSItem) -> HMSItem:
         item.sg = np.moveaxis(item.sg, 0, 1)
         item.sg = np.reshape(item.sg, (item.sg.shape[0], item.sg.shape[1] * item.sg.shape[2]))
+        return item
+
+
+@dataclass
+class HMSCreateSGFromEEG(HMSProcessor):
+    def __init__(self):
+        self.proc = MNEPreprocessor()
+
+    def process(self, item: HMSItem) -> HMSItem:
+        raw = self.proc.load_numpy(item.eeg)
+        self.proc.process(raw)
+        item.eeg = self.proc.spectrogram_chains(raw)
+        item.eeg = np.moveaxis(item.eeg, (0, 1, 2), (2, 1, 0))
+        return item
+
+
+@dataclass
+class HMSCropPad(HMSProcessor):
+    w: int = 256
+    h: int = 128
+
+    def process(self, item: HMSItem) -> HMSItem:
+        item.sg = self.__crop_pad(item.sg)
+        item.eeg = self.__crop_pad(item.eeg)
+        return item
+
+    def __crop_pad(self, data: np.ndarray) -> np.ndarray:
+        w_offset = (data.shape[1] - self.w) // 2
+        if w_offset > 0:
+            data = data[:, w_offset: w_offset + self.w, :]
+        else:
+            data = np.pad(data, ((0, 0), (-w_offset, -w_offset), (0, 0)), constant_values=1)
+
+        h_offset = (data.shape[2] - self.h) // 2
+        if h_offset > 0:
+            data = data[:, :, h_offset: h_offset + self.h]
+        else:
+            data = np.pad(data, ((0, 0), (0, 0), (-h_offset, -h_offset)), constant_values=1)
+
+        return data
+
+
+@dataclass
+class HMSImage(HMSProcessor):
+    def process(self, item: HMSItem) -> HMSItem:
+        item.sg = np.concatenate([ch_img[None, ...] for ch_img in item.sg], axis=2)
+        item.eeg = np.concatenate([ch_img[None, ...] for ch_img in item.eeg], axis=2)
         return item

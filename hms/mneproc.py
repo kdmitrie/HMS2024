@@ -4,20 +4,27 @@ import scipy
 import mne
 
 from sklearn.linear_model import Ridge
-from librosa.feature import melspectrogram
-from librosa import power_to_db
+import librosa
 
 
 class MNEPreprocessor:
     channel_groups = [[0, 11], [4, 5, 6], [1, 2, 3], [8, 9, 10], [12, 13, 14], [15, 16, 17], [7, 18]]
     channel_indices = [[0, 4, 5, 6, 7], [0, 1, 2, 3, 7], [11, 15, 16, 17, 18], [11, 12, 13, 14, 18]]
 
-    def __init__(self, csv_path, eeg_path, n_components=19):
-        self.df = pd.read_csv(csv_path)
+    def __init__(self, csv_path: str = None, eeg_path: str = None, n_components: int = 19, sfreq: int = 200):
+        self.df = None if csv_path is None else pd.read_csv(csv_path)
         self.eeg_path = eeg_path
         self.ica = mne.preprocessing.ICA(n_components=n_components, random_state=42)
 
-    def load(self, item_id):
+        self.ch_names = ['Fp1', 'F3', 'C3', 'P3', 'F7', 'T3', 'T5', 'O1', 'Fz', 'Cz',
+                         'Pz', 'Fp2', 'F4', 'C4', 'P4', 'F8', 'T4', 'T6', 'O2', 'EKG', 'MEANEEG']
+        self.ch_types = ['eeg'] * 19 + ['ecg'] * 2
+        self.mne_info = mne.create_info(self.ch_names, sfreq, self.ch_types)
+        mne.set_log_level(False)
+
+    def load(self, item_id: int) -> mne.io.RawArray:
+        if self.df is None:
+            raise Exception('Dataframe not loaded')
         print(f'Load item #{item_id}')
 
         item = self.df.iloc[item_id]
@@ -29,14 +36,15 @@ class MNEPreprocessor:
 
         eeg['MEANEEG'] = eeg.iloc[:, 0:19].mean(axis=1)
 
-        ch_names = ['Fp1', 'F3', 'C3', 'P3', 'F7', 'T3', 'T5', 'O1', 'Fz', 'Cz', 'Pz', 'Fp2', 'F4', 'C4', 'P4', 'F8',
-                    'T4',  'T6', 'O2', 'EKG', 'MEANEEG']
-        ch_types = ['eeg'] * 19 + ['ecg'] * 2
+        raw = mne.io.RawArray(eeg[self.ch_names].to_numpy().T, self.mne_info)
+        raw.set_montage(mne.channels.make_standard_montage('standard_1020'))
+        return raw
 
-        sfreq = 200
+    def load_numpy(self, eeg: np.ndarray) -> mne.io.RawArray:
+        meaneeg = np.mean(eeg, axis=1).reshape((-1, 1))
+        eeg = np.concatenate((eeg, meaneeg), axis=1)
 
-        mne_info = mne.create_info(ch_names, sfreq, ch_types)
-        raw = mne.io.RawArray(eeg[ch_names].to_numpy().T, mne_info)
+        raw = mne.io.RawArray(eeg.T, self.mne_info)
         raw.set_montage(mne.channels.make_standard_montage('standard_1020'))
         return raw
 
@@ -194,12 +202,12 @@ class MNEPreprocessor:
             for kk in range(4):
                 # Spectrogram
                 x = eeg[self.channel_indices[k][kk]] - eeg[self.channel_indices[k][kk + 1]]
-                mel_spec = melspectrogram(y=x, sr=raw.info['sfreq'], hop_length=len(x) // 300,
+                mel_spec = librosa.feature.melspectrogram(y=x, sr=raw.info['sfreq'], hop_length=len(x) // 300,
                                           n_fft=1024, n_mels=100, fmin=0, fmax=20, win_length=128)
 
                 # LOG TRANSFORM
                 width = (mel_spec.shape[1] // 30) * 30
-                mel_spec_db = power_to_db(mel_spec, ref=np.max).astype(np.float32)[:, :width]
+                mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max).astype(np.float32)[:, :width]
                 sg[:, :, k] += mel_spec_db
 
             # AVERAGE THE 4 MONTAGE DIFFERENCES

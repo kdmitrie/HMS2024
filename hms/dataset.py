@@ -75,6 +75,50 @@ class HMSDataset(Dataset):
         return (sg, eeg), self.labels[index]
 
 
+class HMSSeparateDataset(HMSDataset):
+    """Dataset class for handling HMS competition with separate load of SG and EEG data"""
+
+    def __init__(self, transform: Callable = None, shuffle=True, seed=42):
+        """
+            transform: additional augmentations
+            shuffle: whether to shuffle the order of items
+            seed: the seed number used for RNG
+        """
+        self.transform = transform
+        self._shuffle = shuffle
+        self._seed = seed
+
+    def __init_shuffle(self):
+        self._shuffle = np.arange(self.length)
+        if self.shuffle:
+            rng = np.random.default_rng(seed=self._seed)
+            rng.shuffle(self.shuffle)
+        self.shuffle = self.shuffle.tolist()
+
+
+    def _data_load(self, data_provider: HMSDataProvider, sg_eeg: str = 'sg'):
+        self.length = len(data_provider)
+        data = np.zeros((self.length, *getattr(data_provider[0], sg_eeg).shape), dtype=np.float32)
+        labels = np.zeros((self.length, 6), dtype=np.float32)
+
+        for n in range(len(data_provider)):
+            if n % 1000 == 0:
+                print(n)
+            dt = data_provider[n]
+            data[n], labels[n] = getattr(dt, sg_eeg), dt.label
+
+        labels = np.array(labels)
+        labels = labels / labels.sum(axis=1).reshape((-1, 1))
+
+        return data, labels
+
+    def sg_load(self, data_provider: HMSDataProvider):
+        self.sg, self.labels = self._data_load(data_provider, 'sg')
+
+    def eeg_load(self, data_provider: HMSDataProvider):
+        self.eeg, self.labels = self._data_load(data_provider, 'eeg')
+
+
 class HMSIndexedDataset(Dataset):
     """Class used to select a part of the base dataset specified by indices array"""
 
