@@ -50,7 +50,8 @@ class HMSDataProvider:
 
 @dataclass
 class HMSProcessor:
-    def __call__(self, data: Union[HMSItem, List[HMSItem], HMSDataProvider]) -> Union[HMSItem, List[HMSItem], HMSDataProvider]:
+    def __call__(self, data: Union[HMSItem, List[HMSItem], HMSDataProvider]) \
+            -> Union[HMSItem, List[HMSItem], HMSDataProvider]:
         if isinstance(data, HMSItem):
             return self.process(data)
 

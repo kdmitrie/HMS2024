@@ -74,6 +74,7 @@ class HMSDataset(Dataset):
 
         return (sg, eeg), self.labels[index]
 
+
 class HMSIndexedDataset(Dataset):
     """Class used to select a part of the base dataset specified by indices array"""
 
