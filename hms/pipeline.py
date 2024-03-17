@@ -1,5 +1,5 @@
 import numpy as np
-from typing import List, Union, Callable
+from typing import List, Union, Callable, Optional
 from dataclasses import dataclass, field
 from scipy import signal
 from .mneproc import MNEPreprocessor
@@ -181,4 +181,24 @@ class HMSImage(HMSProcessor):
         item.sg = np.concatenate([ch_img[None, ...] for ch_img in item.sg], axis=-1)
         # Here we don't add a new axis, since HMSDataset adds axis to EEG data
         item.eeg = np.concatenate([ch_img for ch_img in item.eeg], axis=-1)
+        return item
+
+
+@dataclass
+class HMSPermute(HMSProcessor):
+    sg_dest: Optional[List] = None
+    eeg_dest: Optional[List] = None
+
+    def process(self, item: HMSItem) -> HMSItem:
+        if self.sg_dest is not None:
+            item.sg = np.moveaxis(item.sg, range(len(item.sg.shape)), self.sg_dest)
+        if self.eeg_dest is not None:
+            item.eeg = np.moveaxis(item.eeg, range(len(item.eeg.shape)), self.eeg_dest)
+        return item
+
+
+@dataclass
+class HMSSGSplit(HMSProcessor):
+    def process(self, item: HMSItem) -> HMSItem:
+        item.sg = np.array([item.sg[:, n * 100:(n + 1) * 100] for n in range(4)])
         return item

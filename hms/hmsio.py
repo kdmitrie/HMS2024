@@ -165,3 +165,51 @@ class HMSLoad(HMSDataProvider):
         item = HMSItem(sg=self.sg[item_id], eeg=self.eeg[item_id], label=label, sg_fs=self.sg_fs,
                        eeg_fs=self.eeg_fs)
         return self._process_one_item(item)
+
+
+@dataclass
+class HMSSeparateLoad(HMSLoad):
+    """Class for loading the data"""
+    df_path: str = './train.csv'
+
+    def load(self) -> None:
+        self.target = ['seizure_vote', 'lpd_vote', 'gpd_vote', 'lrda_vote', 'grda_vote', 'other_vote']
+        self.load_labels()
+        if self.sg_path:
+            self.load_sg()
+        if self.eeg_path:
+            self.load_eeg()
+
+    def load_labels(self) -> None:
+        train_df = pd.read_csv(self.df_path)
+        aux1 = train_df.groupby(['eeg_id', 'spectrogram_id'])[self.target].agg('sum')
+        aux2 = train_df.groupby(['eeg_id', 'spectrogram_id'])['patient_id'].agg('first')
+        self.labels = aux1.join(aux2).reset_index()
+        if self.limit:
+            self.labels = self.labels[:self.limit]
+        self.groups = self.labels.patient_id
+
+    def load_sg(self, get_item: bool = True) -> None:
+        self.sg = np.load(self.sg_path, allow_pickle=True)
+        if get_item:
+            self.sg = self.sg.item()
+
+    def load_eeg(self, get_item: bool = False) -> None:
+        self.eeg = np.load(self.eeg_path, allow_pickle=True)
+        if get_item:
+            self.sg = self.sg.item()
+
+    def _get_one_item(self, item_id: int) -> HMSItem:
+        """Reads the data from memory"""
+        item = self.labels.iloc[item_id]
+        label = item[self.target].to_numpy()
+
+        eeg = self.eeg[item_id] if self.eeg_path else np.zeros((1, 1, 1)).astype(np.single)
+        sg = self.sg[item['spectrogram_id']] if self.sg_path else np.zeros((1, 1, 1)).astype(np.single)
+
+        if label is not np.nan:
+            label = label.astype(int)
+
+        item = HMSItem(sg=sg, eeg=eeg, label=label, sg_fs=self.sg_fs, eeg_fs=self.eeg_fs)
+
+        return self._process_one_item(item)
