@@ -90,12 +90,11 @@ class HMSSeparateDataset(HMSDataset):
         self._seed = seed
 
     def __init_shuffle(self):
-        self._shuffle = np.arange(self.length)
-        if self.shuffle:
+        self.shuffle = np.arange(self.length)
+        if self._shuffle:
             rng = np.random.default_rng(seed=self._seed)
             rng.shuffle(self.shuffle)
         self.shuffle = self.shuffle.tolist()
-
 
     def _data_load(self, data_provider: HMSDataProvider, sg_eeg: str = 'sg'):
         self.length = len(data_provider)
@@ -110,6 +109,8 @@ class HMSSeparateDataset(HMSDataset):
 
         labels = np.array(labels)
         labels = labels / labels.sum(axis=1).reshape((-1, 1))
+
+        self.__init_shuffle()
 
         return data, labels
 

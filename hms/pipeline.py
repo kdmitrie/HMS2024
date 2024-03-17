@@ -176,9 +176,9 @@ class HMSCropPad(HMSProcessor):
         return data
 
 
-@dataclass
 class HMSImage(HMSProcessor):
     def process(self, item: HMSItem) -> HMSItem:
-        item.sg = np.concatenate([ch_img[None, ...] for ch_img in item.sg], axis=2)
-        item.eeg = np.concatenate([ch_img[None, ...] for ch_img in item.eeg], axis=2)
+        item.sg = np.concatenate([ch_img[None, ...] for ch_img in item.sg], axis=-1)
+        # Here we don't add a new axis, since HMSDataset adds axis to EEG data
+        item.eeg = np.concatenate([ch_img for ch_img in item.eeg], axis=-1)
         return item
