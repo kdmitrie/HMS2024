@@ -1,3 +1,8 @@
+import math
+import torch
+from torch.optim.optimizer import Optimizer
+
+
 class Adan(Optimizer):
     """
     Implements a pytorch variant of Adan
