@@ -1,8 +1,3 @@
-import math
-import torch
-from torch.optim.optimizer import Optimizer
-
-
 class Adan(Optimizer):
     """
     Implements a pytorch variant of Adan
@@ -63,7 +58,7 @@ class Adan(Optimizer):
                     state['exp_avg_diff'] = torch.zeros_like(p)
 
     @torch.no_grad()
-    def step(self):
+    def step(self, closure: None = None):
         """
             Performs a single optimization step.
         """
@@ -135,3 +130,6 @@ class Adan(Optimizer):
                     p.data.div_(1 + group['lr'] * group['weight_decay'])
 
                 state['pre_grad'] = copy_grad
+
+        if closure is not None:
+            closure()

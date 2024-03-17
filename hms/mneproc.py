@@ -203,7 +203,7 @@ class MNEPreprocessor:
                 # Spectrogram
                 x = eeg[self.channel_indices[k][kk]] - eeg[self.channel_indices[k][kk + 1]]
                 mel_spec = librosa.feature.melspectrogram(y=x, sr=raw.info['sfreq'], hop_length=len(x) // 300,
-                                          n_fft=1024, n_mels=100, fmin=0, fmax=20, win_length=128)
+                                                          n_fft=1024, n_mels=100, fmin=0, fmax=20, win_length=128)
 
                 # LOG TRANSFORM
                 width = (mel_spec.shape[1] // 30) * 30
