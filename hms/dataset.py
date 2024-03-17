@@ -119,7 +119,7 @@ class HMSSeparateDataset(HMSDataset):
 
     def eeg_load(self, data_provider: HMSDataProvider):
         self.eeg, self.labels = self._data_load(data_provider, 'eeg')
-
+        self.eeg = np.expand_dims(self.eeg, 1)
 
 class HMSIndexedDataset(Dataset):
     """Class used to select a part of the base dataset specified by indices array"""
