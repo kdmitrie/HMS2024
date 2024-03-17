@@ -161,6 +161,10 @@ class HMSCropPad(HMSProcessor):
         return item
 
     def __crop_pad(self, data: np.ndarray) -> np.ndarray:
+        # Don't process 1x1 images
+        if data.shape[1] + data.shape[2] <= 2:
+            return data
+
         w_offset = (data.shape[1] - self.w) // 2
         if w_offset > 0:
             data = data[:, w_offset: w_offset + self.w, :]
