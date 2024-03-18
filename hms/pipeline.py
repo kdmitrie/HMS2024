@@ -154,13 +154,37 @@ class HMSCreateSGFromEEG(HMSProcessor):
 class HMSCropPad(HMSProcessor):
     w: int = 256
     h: int = 128
+    mode: str = 'edge'
 
     def process(self, item: HMSItem) -> HMSItem:
-        item.sg = self.__crop_pad(item.sg)
-        item.eeg = self.__crop_pad(item.eeg)
+        if self.mode == 'edge':
+            item.sg = self.__crop_pad_edge(item.sg)
+            item.eeg = self.__crop_pad_edge(item.eeg)
+        else:
+            item.sg = self.__crop_pad_center(item.sg)
+            item.eeg = self.__crop_pad_center(item.eeg)
         return item
 
-    def __crop_pad(self, data: np.ndarray) -> np.ndarray:
+    def __crop_pad_edge(self, data: np.ndarray) -> np.ndarray:
+        # Don't process 1x1 images
+        if data.shape[1] + data.shape[2] <= 2:
+            return data
+
+        w_offset = data.shape[1] - self.w
+        if w_offset > 0:
+            data = data[:, :self.w, :]
+        else:
+            data = np.pad(data, ((0, 0), (0, -w_offset), (0, 0)), constant_values=1)
+
+        h_offset = data.shape[2] - self.h
+        if h_offset > 0:
+            data = data[:, :, :self.h]
+        else:
+            data = np.pad(data, ((0, 0), (0, 0), (0, -h_offset)), constant_values=1)
+
+        return data
+
+    def __crop_pad_center(self, data: np.ndarray) -> np.ndarray:
         # Don't process 1x1 images
         if data.shape[1] + data.shape[2] <= 2:
             return data
