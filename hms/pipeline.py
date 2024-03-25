@@ -155,14 +155,17 @@ class HMSCropPad(HMSProcessor):
     w: int = 256
     h: int = 128
     mode: str = 'edge'
+    process_eeg: bool = True
 
     def process(self, item: HMSItem) -> HMSItem:
         if self.mode == 'edge':
             item.sg = self.__crop_pad_edge(item.sg)
-            item.eeg = self.__crop_pad_edge(item.eeg)
+            if self.process_eeg:
+                item.eeg = self.__crop_pad_edge(item.eeg)
         else:
             item.sg = self.__crop_pad_center(item.sg)
-            item.eeg = self.__crop_pad_center(item.eeg)
+            if self.process_eeg:
+                item.eeg = self.__crop_pad_center(item.eeg)
         return item
 
     def __crop_pad_edge(self, data: np.ndarray) -> np.ndarray:
