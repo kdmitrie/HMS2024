@@ -183,7 +183,8 @@ class HMSSeparateLoad(HMSLoad):
 
     def load_labels(self) -> None:
         train_df = pd.read_csv(self.df_path)
-        aux1 = train_df.groupby(['eeg_id', 'spectrogram_id'])[self.target].agg('sum')
+        train_df['row_counter'] = 1
+        aux1 = train_df.groupby(['eeg_id', 'spectrogram_id'])[self.target + ['row_counter']].agg('sum')
         aux2 = train_df.groupby(['eeg_id', 'spectrogram_id'])['patient_id'].agg('first')
         self.labels = aux1.join(aux2).reset_index()
 
