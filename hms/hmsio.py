@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from typing import Tuple, List, Union
+from typing import Tuple, List, Union, Callable
 from dataclasses import dataclass
 from pathlib import Path
 import pickle
@@ -171,6 +171,7 @@ class HMSLoad(HMSDataProvider):
 class HMSSeparateLoad(HMSLoad):
     """Class for loading the data"""
     df_path: str = './train.csv'
+    transform_labels: Callable = None
 
     def load(self) -> None:
         self.target = ['seizure_vote', 'lpd_vote', 'gpd_vote', 'lrda_vote', 'grda_vote', 'other_vote']
@@ -185,6 +186,10 @@ class HMSSeparateLoad(HMSLoad):
         aux1 = train_df.groupby(['eeg_id', 'spectrogram_id'])[self.target].agg('sum')
         aux2 = train_df.groupby(['eeg_id', 'spectrogram_id'])['patient_id'].agg('first')
         self.labels = aux1.join(aux2).reset_index()
+
+        if self.transform_labels is not None:
+            self.labels = self.transform_labels(self.labels)
+
         if self.limit:
             self.labels = self.labels[:self.limit]
         self.groups = self.labels.patient_id
