@@ -37,3 +37,8 @@ class LogNetLR1(LogNetLR):
             torch.nn.Flatten(),
             torch.nn.Linear(model.num_features, 6)
         )
+
+
+class LogNetLR2(LogNetLR):
+    def __init__(self, device: torch.device, model_name: str = 'tf_efficientnet_b1'):
+        super().__init__(device, model_name)
