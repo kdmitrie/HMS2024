@@ -35,6 +35,10 @@ class LogNetLR(torch.nn.Module):
 
         return self._model[:-1](data)
 
+    def to_sequential(self):
+        fc = self._model.classifier
+        self._model.classifier = torch.nn.Identity()
+        self._model = torch.nn.Sequential(self._model, fc)
 
 class LogNetLR1(LogNetLR):
     def __init__(self, device: torch.device, model_name: str = 'tf_efficientnet_b0'):
@@ -46,6 +50,9 @@ class LogNetLR1(LogNetLR):
             torch.nn.Flatten(),
             torch.nn.Linear(model.num_features, 6)
         )
+
+    def to_sequential(self):
+        pass
 
 
 class LogNetLR2(LogNetLR):
