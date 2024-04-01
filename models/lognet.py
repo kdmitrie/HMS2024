@@ -26,6 +26,15 @@ class LogNetLR(torch.nn.Module):
         log_probs = torch.log(probs)
         return log_probs
 
+    def get_embedding(self, x):
+        sg, eeg = x
+
+        data = np.concatenate((sg, eeg), axis=2)
+        data = np.moveaxis(data, (2, 3), (3, 2))
+        data = torch.from_numpy(data).to(self.device)
+
+        return self._model[:-1](data)
+
 
 class LogNetLR1(LogNetLR):
     def __init__(self, device: torch.device, model_name: str = 'tf_efficientnet_b0'):
