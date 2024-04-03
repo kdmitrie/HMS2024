@@ -40,6 +40,7 @@ class LogNetLR(torch.nn.Module):
         self._model.classifier = torch.nn.Identity()
         self._model = torch.nn.Sequential(self._model, fc)
 
+
 class LogNetLR1(LogNetLR):
     def __init__(self, device: torch.device, model_name: str = 'tf_efficientnet_b0'):
         super().__init__(device, model_name)
