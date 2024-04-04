@@ -518,6 +518,7 @@ def create_spectogram_competition(spec_id, seconds_min):
     return img
 
 # %% [code] {"execution":{"iopub.status.busy":"2024-04-04T18:54:27.435508Z","iopub.execute_input":"2024-04-04T18:54:27.436027Z","iopub.status.idle":"2024-04-04T18:54:28.165057Z","shell.execute_reply.started":"2024-04-04T18:54:27.435991Z","shell.execute_reply":"2024-04-04T18:54:28.163258Z"}}
+%%time
 from tqdm import tqdm
 import pandas as pd
 import cv2
@@ -661,7 +662,7 @@ from IPython.display import display
 
 sub = pd.DataFrame({'eeg_id': test.eeg_id.values})
 sub[TARGETS] = pred
-sub.to_csv('submission_5.csv', index=False)
+sub.to_csv('submission.csv', index=False)
 print('Submission shape', sub.shape)
 display(sub.head())
 
