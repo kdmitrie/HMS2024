@@ -661,7 +661,7 @@ from IPython.display import display
 
 sub = pd.DataFrame({'eeg_id': test.eeg_id.values})
 sub[TARGETS] = pred
-sub.to_csv('submission.csv', index=False)
+sub.to_csv('submission_5.csv', index=False)
 print('Submission shape', sub.shape)
 display(sub.head())
 
