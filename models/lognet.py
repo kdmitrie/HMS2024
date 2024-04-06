@@ -56,7 +56,7 @@ class LogNetLR1(LogNetLR):
         pass
 
 
-class LogNetLR2(LogNetLR1):
+class LogNetLR2(LogNetLR):
     def __init__(self, device: torch.device, model_name: str = 'tf_efficientnet_b1'):
         super().__init__(device, model_name)
 
