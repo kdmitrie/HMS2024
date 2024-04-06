@@ -59,3 +59,13 @@ class LogNetLR1(LogNetLR):
 class LogNetLR2(LogNetLR):
     def __init__(self, device: torch.device, model_name: str = 'tf_efficientnet_b1'):
         super().__init__(device, model_name)
+
+
+class LogNetLR3(LogNetLR):
+    def __init__(self, device: torch.device, model_name: str = 'tf_efficientnet_b2'):
+        super().__init__(device, model_name)
+
+
+class LogNetLR4(LogNetLR):
+    def __init__(self, device: torch.device, model_name: str = 'tf_efficientnet_b3'):
+        super().__init__(device, model_name)
