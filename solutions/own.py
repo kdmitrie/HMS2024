@@ -22,7 +22,7 @@ CSV = '/kaggle/input/hms-harmful-brain-activity-classification/%s.csv'
 
 folds = 5
 branch = 'test'
-batch_size = 128
+batch_size = 32
 device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 
 m = int(sys.argv[1])
